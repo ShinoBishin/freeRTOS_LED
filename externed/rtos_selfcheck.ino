@@ -1,5 +1,5 @@
 #include <Arduino_FreeRTOS.h>
-#define LED 2
+#define LED 3
 
 void TaskBlink(void *pvParameters);
 void TaskChecker(void *pvParameters);
@@ -17,6 +17,10 @@ void loop()
 {
 }
 unsigned char led_state;
+int value = 0;
+int led_pw = 0;
+const int sensorMIN = 100;
+const int sensorMAX = 950;
 
 void TaskBlink(void *pvParameters)
 {
@@ -26,11 +30,20 @@ void TaskBlink(void *pvParameters)
 
     for (;;)
     {
-        digitalWrite(LED, HIGH);
+        led_pw = (value - sensorMIN) * 255 / (sensorMAX - sensorMIN);
+        if (led_pw < 0)
+        {
+            led_pw = 0;
+        }
+        if (led_pw > 255)
+        {
+            led_pw = 255;
+        }
+        analogWrite(LED, led_pw);
         led_state = HIGH;
         Serial.print("HIGH, ");
         vTaskDelay(1000 / portTICK_PERIOD_MS);
-        digitalWrite(LED, LOW);
+        analogWrite(LED, 0);
         led_state = LOW;
         Serial.print("LOW, ");
         vTaskDelay(1000 / portTICK_PERIOD_MS);
@@ -40,8 +53,8 @@ void TaskBlink(void *pvParameters)
 void TaskChecker(void *pvParameters)
 {
     (void)pvParameters;
-
-    int value = analogRead(A0);
+    value = analogRead(A0);
+    // int value = analogRead(A0);
     int i = 0;
     for (;;)
     {

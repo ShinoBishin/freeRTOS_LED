@@ -67,7 +67,7 @@ void TaskSerial(void *pvParameters)
             else
             {
                 int val = str.toInt();
-                xQueueSend(InterTaskQueue, &val, portMAX_DELAY);
+                xQueueSend(InterTaskQueue, &val, portMAX_DELAY); //valをblinkに送る
             }
             vTaskDelay(1);
         }
@@ -99,16 +99,16 @@ void TaskButton(void *pvParameters)
 
 void TaskBlink(void *pvParameters)
 {
-    const int LED_PIN = 13;
+    const int LED_PIN = 3;
     (void)pvParameters;
     pinMode(LED_PIN, OUTPUT);
 
     for (;;)
     {
-        int count;
-        if (xQueueReceive(InterTaskQueue, &count, portMAX_DELAY) == pdPASS)
+        int pw;
+        if (xQueueReceive(InterTaskQueue, &pw, portMAX_DELAY) == pdPASS)
         {
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < 10; i++)
             {
                 if (xSemaphoreTake(SerialSemaphore, (TickType_t)5) == pdTRUE)
                 {
@@ -117,9 +117,9 @@ void TaskBlink(void *pvParameters)
                     Serial.println(buf);
                     xSemaphoreGive(SerialSemaphore);
                 }
-                digitalWrite(LED_PIN, HIGH);
+                analogWrite(LED_PIN, pw);
                 vTaskDelay(500 / portTICK_PERIOD_MS);
-                digitalWrite(LED_PIN, LOW);
+                analogWrite(LED_PIN, 0);
                 vTaskDelay(500 / portTICK_PERIOD_MS);
             }
         }
